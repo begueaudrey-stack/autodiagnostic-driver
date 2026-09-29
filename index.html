@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Autodiagnostic - Questionnaire</title>
   
-  <!-- PWA meta tags pour comportement app mobile -->
+  <!-- PWA meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#4f46e5">
@@ -77,7 +77,6 @@
 
     <!-- Screen 2: Question Card -->
     <div id="screen-quiz" class="hidden flex-col justify-between h-full space-y-6">
-      <!-- Question Box -->
       <div class="bg-slate-800/80 border border-slate-700/60 rounded-3xl p-6 shadow-xl flex-1 flex flex-col justify-center min-h-[180px]">
         <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2 block">Affirmation</span>
         <p id="question-text" class="text-lg font-medium text-slate-100 leading-snug">
@@ -109,7 +108,6 @@
         </button>
       </div>
 
-      <!-- Back button -->
       <div class="pt-2">
         <button id="btn-back" onclick="previousQuestion()" class="text-xs text-slate-400 hover:text-slate-200 flex items-center justify-center w-full py-2 disabled:opacity-30">
           ← Question précédente
@@ -121,7 +119,7 @@
     <div id="screen-results" class="hidden space-y-6 py-4">
       <div class="text-center space-y-1">
         <h2 class="text-xl font-bold text-white">Vos Résultats</h2>
-        <p class="text-xs text-slate-400">Répartition par couleur de profil</p>
+        <p class="text-xs text-slate-400">Répartition du total de points par couleur</p>
       </div>
 
       <!-- Chart Container -->
@@ -150,66 +148,67 @@
   </main>
 
   <script>
-    // Questions et associations par couleur (1 à 5 -> Bleu, Vert, Rouge, Orange, Violet)
+    // Questions et associations par couleur exactes du document Word :
+    // Orange, Bleu, Jaune, Rose, Vert
     const questions = [
-      { text: "J’ai toujours l’impression de me battre contre la montre.", color: "Bleu" },
-      { text: "Je pense que l’effort est plus important que le résultat.", color: "Vert" },
-      { text: "Je pense que dans la vie, je dois me débrouiller seul.", color: "Rouge" },
-      { text: "Pour commencer une tâche, il me faut « toutes » les informations.", color: "Orange" },
-      { text: "Il est important que les autres m'apprécient.", color: "Violet" },
-      { text: "Le stress me dope.", color: "Bleu" },
-      { text: "J’ai souvent peur de ne pas être à la hauteur.", color: "Vert" },
-      { text: "Je suis très exigeant envers moi-même et les autres.", color: "Orange" },
-      { text: "Pour être satisfait, je dois exceller.", color: "Orange" },
-      { text: "Pour être aimé, je rends service plus que la moyenne.", color: "Violet" },
-      { text: "Je ne peux déléguer, car les autres sont trop lents.", color: "Bleu" },
-      { text: "Je dois dépenser beaucoup d’énergie pour faire les choses.", color: "Vert" },
-      { text: "Je ne suis pas proche de mes émotions et de leur expression.", color: "Rouge" },
-      { text: "Pour être efficace, ma tâche doit être parfaite.", color: "Orange" },
-      { text: "Pour mon patron, je suis disponible, même chez moi.", color: "Violet" },
-      { text: "Je parle vite.", color: "Bleu" },
-      { text: "J’ai un sentiment d’oppression et la peur d’exploser si je me laissais aller.", color: "Rouge" },
-      { text: "J’aime accomplir de nobles tâches.", color: "Vert" },
-      { text: "Les faits, les chiffres, la logique, voilà les vraies valeurs.", color: "Orange" },
-      { text: "Il faut dire aux gens ce qu’ils ont envie d’entendre.", color: "Violet" },
-      { text: "J’ai envie d’interrompre les gens pour finir leurs phrases à leur place.", color: "Bleu" },
-      { text: "J’ai le sentiment depuis longtemps d’être responsable de ce qui arrive aux autres.", color: "Violet" },
-      { text: "L’échange intellectuel est le domaine où je suis à l’aise.", color: "Orange" },
-      { text: "L’exactitude à tout prix, voilà le prix de mon image.", color: "Orange" },
-      { text: "J’aime savoir qu’un collègue a besoin de moi.", color: "Violet" },
-      { text: "Je dis souvent : « Pressons… Oui… Oui… et alors ».", color: "Bleu" },
-      { text: "Les autres disent de moi que je me plains souvent.", color: "Vert" },
-      { text: "J’aime ce qui fait appel à la logique.", color: "Orange" },
-      { text: "Je dois donner à penser à mon interlocuteur que je sais tout.", color: "Orange" },
-      { text: "Les gens viennent à moi sans que je leur demande, car l’on me trouve gentil(le).", color: "Violet" },
-      { text: "J’ai coutume de faire les cent pas lorsque je suis en attente de quelque chose.", color: "Bleu" },
-      { text: "Je fais rarement des pauses, je préfère continuer à avancer sur mon travail.", color: "Rouge" },
-      { text: "J’ai du mal à faire confiance et à m’abandonner.", color: "Rouge" },
-      { text: "Je dois tout faire pour ne pas être critiqué.", color: "Orange" },
-      { text: "J’aime aider les autres.", color: "Violet" },
-      { text: "Je tapote souvent avec mes doigts ou avec mes pieds.", color: "Bleu" },
-      { text: "Je crée des situations confuses où je suis stupide et impuissant.", color: "Vert" },
-      { text: "Le jugement des autres sur mes actes m’importe beaucoup.", color: "Violet" },
-      { text: "Je suis convaincu que je suis le meilleur.", color: "Rouge" },
-      { text: "Je ne sais pas dire non.", color: "Violet" },
-      { text: "Je vais trop vite, ce qui me fait faire des fautes d’inattention.", color: "Bleu" },
-      { text: "Que d’efforts pour répondre à toutes ces questions !", color: "Vert" },
-      { text: "Je me sens en sécurité si je ne m’implique pas émotionnellement.", color: "Rouge" },
-      { text: "Tant qu’une tâche n’est pas réalisée comme je l’imaginais, je recommence.", color: "Orange" },
-      { text: "J’aime jouer le rôle de confident.", color: "Violet" },
-      { text: "Je ne peux rester inactif et, au besoin, je fais plusieurs choses en même temps.", color: "Bleu" },
-      { text: "Ma mère me disait souvent : \"Avec un peu plus d’efforts on arrive à tout\"", color: "Vert" },
-      { text: "Dans une tâche à plusieurs, je n’aime pas que l’on ne respecte pas le timing ni l’objectif et que l’on fasse des digressions.", color: "Bleu" },
-      { text: "J’attends de mes collaborateurs qu’ils fassent exactement ce que je leur dis.", color: "Orange" },
-      { text: "En répondant à ces questions, je me demande si les réponses correspondent bien à ce que l’on attend de moi.", color: "Violet" }
+      { text: "J’ai toujours l’impression de me battre contre la montre.", color: "Orange" },
+      { text: "Je pense que l’effort est plus important que le résultat.", color: "Bleu" },
+      { text: "Je pense que dans la vie, je dois me débrouiller seul.", color: "Jaune" },
+      { text: "Pour commencer une tâche, il me faut « toutes » les informations.", color: "Rose" },
+      { text: "Il est important que les autres m'apprécient.", color: "Vert" },
+      { text: "Le stress me dope.", color: "Orange" },
+      { text: "J’ai souvent peur de ne pas être à la hauteur.", color: "Bleu" },
+      { text: "Je suis très exigeant envers moi-même et les autres.", color: "Rose" },
+      { text: "Pour être satisfait, je dois exceller.", color: "Rose" },
+      { text: "Pour être aimé, je rends service plus que la moyenne.", color: "Vert" },
+      { text: "Je ne peux déléguer, car les autres sont trop lents.", color: "Orange" },
+      { text: "Je dois dépenser beaucoup d’énergie pour faire les choses.", color: "Bleu" },
+      { text: "Je ne suis pas proche de mes émotions et de leur expression.", color: "Jaune" },
+      { text: "Pour être efficace, ma tâche doit être parfaite.", color: "Rose" },
+      { text: "Pour mon patron, je suis disponible, même chez moi.", color: "Vert" },
+      { text: "Je parle vite.", color: "Orange" },
+      { text: "J’ai un sentiment d’oppression et la peur d’exploser si je me laissais aller.", color: "Jaune" },
+      { text: "J’aime accomplir de nobles tâches.", color: "Bleu" },
+      { text: "Les faits, les chiffres, la logique, voilà les vraies valeurs.", color: "Rose" },
+      { text: "Il faut dire aux gens ce qu’ils ont envie d’entendre.", color: "Vert" },
+      { text: "J’ai envie d’interrompre les gens pour finir leurs phrases à leur place.", color: "Orange" },
+      { text: "J’ai le sentiment depuis longtemps d’être responsable de ce qui arrive aux autres.", color: "Vert" },
+      { text: "L’échange intellectuel est le domaine où je suis à l’aise.", color: "Rose" },
+      { text: "L’exactitude à tout prix, voilà le prix de mon image.", color: "Rose" },
+      { text: "J’aime savoir qu’un collègue a besoin de moi.", color: "Vert" },
+      { text: "Je dis souvent : « Pressons… Oui… Oui… et alors ».", color: "Orange" },
+      { text: "Les autres disent de moi que je me plains souvent.", color: "Bleu" },
+      { text: "J’aime ce qui fait appel à la logique.", color: "Rose" },
+      { text: "Je dois donner à penser à mon interlocuteur que je sais tout.", color: "Rose" },
+      { text: "Les gens viennent à moi sans que je leur demande, car l’on me trouve gentil(le).", color: "Vert" },
+      { text: "J’ai coutume de faire les cent pas lorsque je suis en attente de quelque chose.", color: "Orange" },
+      { text: "Je fais rarement des pauses, je préfère continuer à avancer sur mon travail.", color: "Jaune" },
+      { text: "J’ai du mal à faire confiance et à m’abandonner.", color: "Jaune" },
+      { text: "Je dois tout faire pour ne pas être critiqué.", color: "Rose" },
+      { text: "J’aime aider les autres.", color: "Vert" },
+      { text: "Je tapote souvent avec mes doigts ou avec mes pieds.", color: "Orange" },
+      { text: "Je crée des situations confuses où je suis stupide et impuissant.", color: "Bleu" },
+      { text: "Le jugement des autres sur mes actes m’importe beaucoup.", color: "Rose" },
+      { text: "Je suis convaincu que je suis le meilleur.", color: "Jaune" },
+      { text: "Je ne sais pas dire non.", color: "Vert" },
+      { text: "Je vais trop vite, ce qui me fait faire des fautes d’inattention.", color: "Orange" },
+      { text: "Que d’efforts pour répondre à toutes ces questions !", color: "Bleu" },
+      { text: "Je me sens en sécurité si je ne m’implique pas émotionnellement.", color: "Jaune" },
+      { text: "Tant qu’une tâche n’est pas réalisée comme je l’imaginais, je recommence.", color: "Rose" },
+      { text: "J’aime jouer le rôle de confident.", color: "Vert" },
+      { text: "Je ne peux rester inactif et, au besoin, je fais plusieurs choses en même temps.", color: "Orange" },
+      { text: "Ma mère me disait souvent : \"Avec un peu plus d’efforts on arrive à tout\"", color: "Bleu" },
+      { text: "Dans une tâche à plusieurs, je n’aime pas que l’on ne respecte pas le timing ni l’objectif et que l’on fasse des digressions.", color: "Orange" },
+      { text: "J’attends de mes collaborateurs qu’ils fassent exactement ce que je leur dis.", color: "Rose" },
+      { text: "En répondant à ces questions, je me demande si les réponses correspondent bien à ce que l’on attend de moi.", color: "Vert" }
     ];
 
     const colorConfig = {
-      "Bleu": { hex: "#3b82f6", label: "Bleu" },
-      "Vert": { hex: "#22c55e", label: "Vert" },
-      "Rouge": { hex: "#ef4444", label: "Rouge" },
       "Orange": { hex: "#f97316", label: "Orange" },
-      "Violet": { hex: "#a855f7", label: "Violet" }
+      "Bleu":   { hex: "#3b82f6", label: "Bleu" },
+      "Jaune":  { hex: "#eab308", label: "Jaune" },
+      "Rose":   { hex: "#ec4899", label: "Rose" },
+      "Vert":   { hex: "#22c55e", label: "Vert" }
     };
 
     let currentIndex = 0;
@@ -252,7 +251,7 @@
     }
 
     function calculateTotals() {
-      const totals = { "Bleu": 0, "Vert": 0, "Rouge": 0, "Orange": 0, "Violet": 0 };
+      const totals = { "Orange": 0, "Bleu": 0, "Jaune": 0, "Rose": 0, "Vert": 0 };
       userAnswers.forEach((val, idx) => {
         if (val !== null) {
           const color = questions[idx].color;
