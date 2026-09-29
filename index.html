@@ -1,333 +1,345 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Autodiagnostic - Questionnaire</title>
-  
-  <!-- PWA meta tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#4f46e5">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Autodiagnostic – Atelier J1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#faf8f4; --surface:#fff; --tint:#f2eee7; --ink:#201c19; --soft:#635b50;
+    --muted:#948a7c; --line:#e4ddd0; --accent:#4a3aa7; --accent-soft:#ece8f9;
+    --shadow:0 1px 2px rgba(32,28,25,.06),0 8px 24px -12px rgba(32,28,25,.18);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+  h1,h2,.q-text{font-family:"Newsreader",Georgia,serif}
+  h1,h2{font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+  [hidden]{display:none!important}
+  .app{max-width:480px;margin:0 auto;padding:20px 20px 48px}
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .option-btn:active {
-      transform: scale(0.96);
-    }
-  </style>
+  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;margin:4px 0 10px}
+  .intro h1{font-size:34px;line-height:1.08;margin:0 0 14px}
+  .intro p{font-size:15.5px;line-height:1.55;color:var(--soft);margin:0 0 14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  .intro-card{padding:18px 18px 6px;margin:22px 0 24px}
+  .meta-row{display:flex;gap:14px;align-items:flex-start;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .meta-row:last-child{border-bottom:none;margin-bottom:0}
+  .meta-num{font-family:"Newsreader",serif;font-size:20px;color:var(--accent);font-weight:600;min-width:34px}
+  .meta-row strong{display:block;font-size:14.5px;margin-bottom:2px}
+  .meta-row p{margin:0;font-size:13.5px;color:var(--soft);line-height:1.45}
+
+  .btn{display:block;width:100%;text-align:center;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:16px 18px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:var(--shadow)}
+  .btn-ghost{background:transparent;color:var(--soft);box-shadow:none;border:1px solid var(--line)}
+  .source-note{font-size:12px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5}
+
+  .quiz-head{position:sticky;top:env(safe-area-inset-top,0);background:var(--bg);padding:6px 0 14px;z-index:5}
+  .progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .progress-count{font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+  .q-color{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+  .chip,.swatch{display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(0,0,0,.25);flex:none}
+  .progress-track{height:6px;border-radius:4px;background:var(--tint);overflow:hidden}
+  .progress-fill{height:100%;width:0;background:var(--accent);border-radius:4px;transition:width .35s ease}
+
+  .q-card{border:1px solid var(--line);border-top:12px solid var(--qc,var(--line));
+    background:var(--surface);
+    background:color-mix(in srgb,var(--qc,transparent) 14%,var(--surface));
+    border-radius:18px;padding:28px 22px 22px;margin-top:18px;box-shadow:var(--shadow)}
+  .q-text{font-style:italic;font-size:21px;line-height:1.4;margin:0}
+  .answers{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  .answer-btn{display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:13px;padding:13px 16px;font-family:inherit;font-size:15px;color:var(--ink);text-align:left;cursor:pointer}
+  .dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--muted)}
+  .answer-btn.selected{border-color:var(--ink);background:var(--accent-soft);background:color-mix(in srgb,var(--qc,var(--accent)) 30%,var(--surface))}
+  .answer-btn.selected .dot{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+  .quiz-nav{margin-top:18px}
+  .link-btn{background:none;border:none;font-family:inherit;font-size:14px;color:var(--soft);padding:10px 4px;cursor:pointer}
+  .link-btn:disabled{opacity:.35}
+
+  .results h2{font-size:26px;margin:4px 0}
+  .lead{font-size:14.5px;color:var(--soft);margin:0 0 22px;line-height:1.5}
+  .chart-card{padding:20px 14px 8px;border-radius:18px}
+  .chart{position:relative;display:flex;align-items:flex-end;height:230px;padding-left:26px;margin-top:4px}
+  .gridlines{position:absolute;left:26px;right:0;top:0;bottom:26px;pointer-events:none}
+  .gridline{position:absolute;left:0;right:0;border-top:1px dashed var(--line)}
+  .grid-label{position:absolute;left:-26px;width:22px;text-align:right;font-size:10px;color:var(--muted);transform:translateY(-50%)}
+  .bars{position:relative;display:flex;flex:1;align-items:flex-end;height:100%;padding-bottom:26px;gap:6px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+  .bar-value{font-size:12.5px;font-weight:700;margin-bottom:5px}
+  .bar{width:68%;max-width:46px;border-radius:5px 5px 2px 2px;border:1px solid rgba(0,0,0,.2);transition:height .7s cubic-bezier(.2,.8,.2,1)}
+  .bar-label{position:absolute;bottom:-24px;left:0;right:0;text-align:center;font-size:11px;color:var(--soft)}
+  .bar-col.top .bar-label{color:var(--ink);font-weight:700}
+  .star{font-size:13px;line-height:1;margin-bottom:3px;color:var(--accent)}
+  .score-list{margin-top:46px;display:flex;flex-direction:column;gap:12px}
+  .score-card{padding:14px 16px;border-width:1.5px;border-radius:14px}
+  .score-card.top{border-color:var(--accent)}
+  .score-head{display:flex;align-items:center;gap:10px}
+  .score-head strong{font-size:15px;flex:1}
+  .score-val{font-size:13px;color:var(--soft)}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:3px 8px;border-radius:20px}
+  .restart-wrap{margin-top:26px}
+</style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between font-sans antialiased">
+<body>
+<div class="app">
 
-  <!-- Header Mobile -->
-  <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/50 p-4 sticky top-0 z-50 flex items-center justify-between">
-    <div class="flex items-center space-x-2">
-      <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-sm">
-        AD
-      </div>
-      <h1 class="text-base font-semibold text-slate-100">Autodiagnostic</h1>
+  <!-- INTRO -->
+  <section id="view-intro" class="intro">
+    <div class="eyebrow">Atelier J1</div>
+    <h1>Autodiagnostic</h1>
+    <p>Répondez spontanément à chaque affirmation, sans trop réfléchir : c'est le premier ressenti qui compte. Chaque affirmation est associée à une couleur.</p>
+    <p>À la fin, vous obtiendrez votre total par couleur. Nous découvrirons ensemble ce qu'elles signifient à l'oral.</p>
+    <div class="card intro-card">
+      <div class="meta-row"><div class="meta-num">50</div><div><strong>Affirmations</strong><p>Répondez spontanément, sans trop réfléchir.</p></div></div>
+      <div class="meta-row"><div class="meta-num">0–4</div><div><strong>Une échelle simple</strong><p>De « ce n'est pas du tout moi » à « c'est tout à fait moi ».</p></div></div>
+      <div class="meta-row"><div class="meta-num">5</div><div><strong>Couleurs</strong><p>Orange, bleu, jaune, rose et vert : vos réponses sont additionnées par couleur.</p></div></div>
     </div>
-    <span id="counter" class="text-xs font-semibold px-2.5 py-1 bg-indigo-950 text-indigo-300 border border-indigo-800/50 rounded-full">
-      1 / 50
-    </span>
-  </header>
+    <button class="btn" id="start-btn">Commencer le test</button>
+    <p class="source-note">Atelier J1 – Fiche d'autodiagnostic. Aucune donnée n'est enregistrée : le résultat s'affiche uniquement sur votre écran.</p>
+  </section>
 
-  <!-- Progress Bar -->
-  <div class="w-full bg-slate-800 h-1.5">
-    <div id="progress-bar" class="bg-indigo-500 h-1.5 transition-all duration-300" style="width: 2%;"></div>
-  </div>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 flex flex-col justify-center p-4 max-w-md mx-auto w-full">
-
-    <!-- Screen 1: Welcome -->
-    <div id="screen-welcome" class="space-y-6 text-center py-6">
-      <div class="w-20 h-20 bg-indigo-600/20 text-indigo-400 rounded-3xl flex items-center justify-center mx-auto border border-indigo-500/30 shadow-inner">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-        </svg>
+  <!-- QUESTIONS -->
+  <section id="view-quiz" hidden>
+    <div class="quiz-head">
+      <div class="progress-row">
+        <span class="progress-count" id="q-count"></span>
+        <span class="q-color" id="q-color"></span>
       </div>
-      <div>
-        <h2 class="text-2xl font-bold text-white mb-2">Questionnaire d'Autodiagnostic</h2>
-        <p class="text-slate-400 text-sm leading-relaxed">
-          Répondez spontanément aux 50 affirmations suivantes selon votre fonctionnement quotidien.
-        </p>
-      </div>
-      
-      <div class="bg-slate-800/60 rounded-2xl p-4 text-left border border-slate-700/50 space-y-2 text-xs text-slate-300">
-        <p class="font-semibold text-slate-200">Échelle d'évaluation :</p>
-        <ul class="space-y-1 text-slate-400">
-          <li>• <strong class="text-slate-200">0</strong> : Pas du tout moi</li>
-          <li>• <strong class="text-slate-200">1</strong> : Peut-être moi</li>
-          <li>• <strong class="text-slate-200">2</strong> : Quelquefois moi</li>
-          <li>• <strong class="text-slate-200">3</strong> : Souvent moi</li>
-          <li>• <strong class="text-slate-200">4</strong> : Tout à fait moi</li>
-        </ul>
-      </div>
-
-      <button onclick="startQuiz()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all text-base">
-        Commencer le test
-      </button>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
-
-    <!-- Screen 2: Question Card -->
-    <div id="screen-quiz" class="hidden flex-col justify-between h-full space-y-6">
-      <div class="bg-slate-800/80 border border-slate-700/60 rounded-3xl p-6 shadow-xl flex-1 flex flex-col justify-center min-h-[180px]">
-        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-2 block">Affirmation</span>
-        <p id="question-text" class="text-lg font-medium text-slate-100 leading-snug">
-          Chargement...
-        </p>
-      </div>
-
-      <!-- Options Buttons -->
-      <div class="grid grid-cols-1 gap-2.5">
-        <button onclick="selectOption(0)" class="option-btn py-3.5 px-4 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 rounded-2xl flex items-center justify-between text-slate-200 text-sm transition-all">
-          <span>0 - Pas du tout moi</span>
-          <span class="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-400">0</span>
-        </button>
-        <button onclick="selectOption(1)" class="option-btn py-3.5 px-4 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 rounded-2xl flex items-center justify-between text-slate-200 text-sm transition-all">
-          <span>1 - Peut-être moi</span>
-          <span class="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-400">1</span>
-        </button>
-        <button onclick="selectOption(2)" class="option-btn py-3.5 px-4 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 rounded-2xl flex items-center justify-between text-slate-200 text-sm transition-all">
-          <span>2 - Quelquefois moi</span>
-          <span class="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-400">2</span>
-        </button>
-        <button onclick="selectOption(3)" class="option-btn py-3.5 px-4 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 rounded-2xl flex items-center justify-between text-slate-200 text-sm transition-all">
-          <span>3 - Souvent moi</span>
-          <span class="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-400">3</span>
-        </button>
-        <button onclick="selectOption(4)" class="option-btn py-3.5 px-4 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/50 rounded-2xl flex items-center justify-between text-slate-200 text-sm transition-all">
-          <span>4 - Tout à fait moi</span>
-          <span class="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-400">4</span>
-        </button>
-      </div>
-
-      <div class="pt-2">
-        <button id="btn-back" onclick="previousQuestion()" class="text-xs text-slate-400 hover:text-slate-200 flex items-center justify-center w-full py-2 disabled:opacity-30">
-          ← Question précédente
-        </button>
+    <div class="q-card" id="q-card">
+      <p class="q-text" id="q-text"></p>
+      <div class="answers" id="answers">
+        <button class="answer-btn" data-v="0"><span class="dot">0</span> Ce n'est PAS DU TOUT moi</button>
+        <button class="answer-btn" data-v="1"><span class="dot">1</span> C'est PEUT-ÊTRE moi</button>
+        <button class="answer-btn" data-v="2"><span class="dot">2</span> C'est QUELQUEFOIS moi</button>
+        <button class="answer-btn" data-v="3"><span class="dot">3</span> C'est SOUVENT moi</button>
+        <button class="answer-btn" data-v="4"><span class="dot">4</span> C'est TOUT À FAIT moi</button>
       </div>
     </div>
+    <div class="quiz-nav"><button class="link-btn" id="back-btn">&larr; Précédent</button></div>
+  </section>
 
-    <!-- Screen 3: Results -->
-    <div id="screen-results" class="hidden space-y-6 py-4">
-      <div class="text-center space-y-1">
-        <h2 class="text-xl font-bold text-white">Vos Résultats</h2>
-        <p class="text-xs text-slate-400">Répartition du total de points par couleur</p>
+  <!-- RÉSULTATS -->
+  <section id="view-results" class="results" hidden>
+    <div class="eyebrow">Votre profil</div>
+    <h2>Vos résultats</h2>
+    <p class="lead">Total par couleur (sur 40). Notez vos cinq totaux : nous les analyserons ensemble à l'oral.</p>
+    <div class="card chart-card">
+      <div class="chart">
+        <div class="gridlines" id="gridlines"></div>
+        <div class="bars" id="bars"></div>
       </div>
-
-      <!-- Chart Container -->
-      <div class="bg-slate-800/90 border border-slate-700/60 rounded-3xl p-4 shadow-xl">
-        <div class="h-64 relative">
-          <canvas id="resultsChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Detailed Breakdown Cards -->
-      <div id="color-scores" class="grid grid-cols-5 gap-1.5 text-center">
-        <!-- Generated dynamically -->
-      </div>
-
-      <div class="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/40 text-center">
-        <p class="text-xs text-slate-400">
-          Gardez cet écran ouvert ou prenez une capture d'écran pour la phase d'analyse collective avec votre formateur.
-        </p>
-      </div>
-
-      <button onclick="restartQuiz()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold rounded-2xl text-sm transition-all">
-        Recommencer le questionnaire
-      </button>
     </div>
+    <div class="score-list" id="score-list"></div>
+    <div class="restart-wrap"><button class="btn btn-ghost" id="restart-btn">Refaire le test</button></div>
+  </section>
 
-  </main>
+</div>
 
-  <script>
-    // Questions et associations par couleur exactes du document Word :
-    // Orange, Bleu, Jaune, Rose, Vert
-    const questions = [
-      { text: "J’ai toujours l’impression de me battre contre la montre.", color: "Orange" },
-      { text: "Je pense que l’effort est plus important que le résultat.", color: "Bleu" },
-      { text: "Je pense que dans la vie, je dois me débrouiller seul.", color: "Jaune" },
-      { text: "Pour commencer une tâche, il me faut « toutes » les informations.", color: "Rose" },
-      { text: "Il est important que les autres m'apprécient.", color: "Vert" },
-      { text: "Le stress me dope.", color: "Orange" },
-      { text: "J’ai souvent peur de ne pas être à la hauteur.", color: "Bleu" },
-      { text: "Je suis très exigeant envers moi-même et les autres.", color: "Rose" },
-      { text: "Pour être satisfait, je dois exceller.", color: "Rose" },
-      { text: "Pour être aimé, je rends service plus que la moyenne.", color: "Vert" },
-      { text: "Je ne peux déléguer, car les autres sont trop lents.", color: "Orange" },
-      { text: "Je dois dépenser beaucoup d’énergie pour faire les choses.", color: "Bleu" },
-      { text: "Je ne suis pas proche de mes émotions et de leur expression.", color: "Jaune" },
-      { text: "Pour être efficace, ma tâche doit être parfaite.", color: "Rose" },
-      { text: "Pour mon patron, je suis disponible, même chez moi.", color: "Vert" },
-      { text: "Je parle vite.", color: "Orange" },
-      { text: "J’ai un sentiment d’oppression et la peur d’exploser si je me laissais aller.", color: "Jaune" },
-      { text: "J’aime accomplir de nobles tâches.", color: "Bleu" },
-      { text: "Les faits, les chiffres, la logique, voilà les vraies valeurs.", color: "Rose" },
-      { text: "Il faut dire aux gens ce qu’ils ont envie d’entendre.", color: "Vert" },
-      { text: "J’ai envie d’interrompre les gens pour finir leurs phrases à leur place.", color: "Orange" },
-      { text: "J’ai le sentiment depuis longtemps d’être responsable de ce qui arrive aux autres.", color: "Vert" },
-      { text: "L’échange intellectuel est le domaine où je suis à l’aise.", color: "Rose" },
-      { text: "L’exactitude à tout prix, voilà le prix de mon image.", color: "Rose" },
-      { text: "J’aime savoir qu’un collègue a besoin de moi.", color: "Vert" },
-      { text: "Je dis souvent : « Pressons… Oui… Oui… et alors ».", color: "Orange" },
-      { text: "Les autres disent de moi que je me plains souvent.", color: "Bleu" },
-      { text: "J’aime ce qui fait appel à la logique.", color: "Rose" },
-      { text: "Je dois donner à penser à mon interlocuteur que je sais tout.", color: "Rose" },
-      { text: "Les gens viennent à moi sans que je leur demande, car l’on me trouve gentil(le).", color: "Vert" },
-      { text: "J’ai coutume de faire les cent pas lorsque je suis en attente de quelque chose.", color: "Orange" },
-      { text: "Je fais rarement des pauses, je préfère continuer à avancer sur mon travail.", color: "Jaune" },
-      { text: "J’ai du mal à faire confiance et à m’abandonner.", color: "Jaune" },
-      { text: "Je dois tout faire pour ne pas être critiqué.", color: "Rose" },
-      { text: "J’aime aider les autres.", color: "Vert" },
-      { text: "Je tapote souvent avec mes doigts ou avec mes pieds.", color: "Orange" },
-      { text: "Je crée des situations confuses où je suis stupide et impuissant.", color: "Bleu" },
-      { text: "Le jugement des autres sur mes actes m’importe beaucoup.", color: "Rose" },
-      { text: "Je suis convaincu que je suis le meilleur.", color: "Jaune" },
-      { text: "Je ne sais pas dire non.", color: "Vert" },
-      { text: "Je vais trop vite, ce qui me fait faire des fautes d’inattention.", color: "Orange" },
-      { text: "Que d’efforts pour répondre à toutes ces questions !", color: "Bleu" },
-      { text: "Je me sens en sécurité si je ne m’implique pas émotionnellement.", color: "Jaune" },
-      { text: "Tant qu’une tâche n’est pas réalisée comme je l’imaginais, je recommence.", color: "Rose" },
-      { text: "J’aime jouer le rôle de confident.", color: "Vert" },
-      { text: "Je ne peux rester inactif et, au besoin, je fais plusieurs choses en même temps.", color: "Orange" },
-      { text: "Ma mère me disait souvent : \"Avec un peu plus d’efforts on arrive à tout\"", color: "Bleu" },
-      { text: "Dans une tâche à plusieurs, je n’aime pas que l’on ne respecte pas le timing ni l’objectif et que l’on fasse des digressions.", color: "Orange" },
-      { text: "J’attends de mes collaborateurs qu’ils fassent exactement ce que je leur dis.", color: "Rose" },
-      { text: "En répondant à ces questions, je me demande si les réponses correspondent bien à ce que l’on attend de moi.", color: "Vert" }
-    ];
+<script>
+(function(){
+  "use strict";
 
-    const colorConfig = {
-      "Orange": { hex: "#f97316", label: "Orange" },
-      "Bleu":   { hex: "#3b82f6", label: "Bleu" },
-      "Jaune":  { hex: "#eab308", label: "Jaune" },
-      "Rose":   { hex: "#ec4899", label: "Rose" },
-      "Vert":   { hex: "#22c55e", label: "Vert" }
-    };
+  // Couleurs de la fiche (la question i appartient à la couleur i % 5)
+  var COLORS = [
+    {name:"Orange", color:"#EC7C30"},
+    {name:"Bleu",   color:"#8EA9DB"},
+    {name:"Jaune",  color:"#FFFF00"},
+    {name:"Rose",   color:"#F8A0F5"},
+    {name:"Vert",   color:"#C5DFB4"}
+  ];
 
-    let currentIndex = 0;
-    let userAnswers = new Array(questions.length).fill(null);
-    let chartInstance = null;
+  var QUESTIONS = [
+    "J’ai toujours l’impression de me battre contre la montre.",
+    "Je pense que l’effort est plus important que le résultat.",
+    "Je pense que dans la vie, je dois me débrouiller seul.",
+    "Pour commencer une tâche, il me faut « toutes » les informations.",
+    "Il est important que les autres m'apprécient.",
+    "Le stress me dope.",
+    "J’ai souvent peur de ne pas être à la hauteur.",
+    "Je suis très exigeant envers moi-même et les autres.",
+    "Pour être satisfait, je dois exceller.",
+    "Pour être aimé, je rends service plus que la moyenne.",
+    "Je ne peux déléguer, car les autres sont trop lents.",
+    "Je dois dépenser beaucoup d’énergie pour faire les choses.",
+    "Je ne suis pas proche de mes émotions et de leur expression.",
+    "Pour être efficace, ma tâche doit être parfaite.",
+    "Pour mon patron, je suis disponible, même chez moi.",
+    "Je parle vite.",
+    "J’ai un sentiment d’oppression et la peur d’exploser si je me laissais aller.",
+    "J’aime accomplir de nobles tâches.",
+    "Les faits, les chiffres, la logique, voilà les vraies valeurs.",
+    "Il faut dire aux gens ce qu’ils ont envie d’entendre.",
+    "J’ai envie d’interrompre les gens pour finir leurs phrases à leur place.",
+    "J’ai le sentiment depuis longtemps d’être responsable de ce qui arrive aux autres.",
+    "L’échange intellectuel est le domaine où je suis à l’aise.",
+    "L’exactitude à tout prix, voilà le prix de mon image.",
+    "J’aime savoir qu’un collègue a besoin de moi.",
+    "Je dis souvent : « Pressons… Oui… Oui… et alors ».",
+    "Les autres disent de moi que je me plains souvent.",
+    "J’aime ce qui fait appel à la logique.",
+    "Je dois donner à penser à mon interlocuteur que je sais tout.",
+    "Les gens viennent à moi sans que je leur demande, car l’on me trouve gentil(le).",
+    "J’ai coutume de faire les cent pas lorsque je suis en attente de quelque chose.",
+    "Je fais rarement des pauses, je préfère continuer à avancer sur mon travail.",
+    "J’ai du mal à faire confiance et à m’abandonner.",
+    "Je dois tout faire pour ne pas être critiqué.",
+    "J’aime aider les autres.",
+    "Je tapote souvent avec mes doigts ou avec mes pieds.",
+    "Je crée des situations confuses où je suis stupide et impuissant.",
+    "Le jugement des autres sur mes actes m’importe beaucoup.",
+    "Je suis convaincu que je suis le meilleur.",
+    "Je ne sais pas dire non.",
+    "Je vais trop vite, ce qui me fait faire des fautes d’inattention.",
+    "Que d’efforts pour répondre à toutes ces questions !",
+    "Je me sens en sécurité si je ne m’implique pas émotionnellement.",
+    "Tant qu’une tâche n’est pas réalisée comme je l’imaginais, je recommence.",
+    "J’aime jouer le rôle de confident.",
+    "Je ne peux rester inactif et, au besoin, je fais plusieurs choses en même temps.",
+    "Ma mère me disait souvent : « Avec un peu plus d’efforts on arrive à tout »",
+    "Dans une tâche à plusieurs, je n’aime pas que l’on ne respecte pas le timing ni l’objectif et que l’on fasse des digressions.",
+    "J’attends de mes collaborateurs qu’ils fassent exactement ce que je leur dis.",
+    "En répondant à ces questions, je me demande si les réponses correspondent bien à ce que l’on attend de moi."
+  ];
 
-    function startQuiz() {
-      document.getElementById("screen-welcome").classList.add("hidden");
-      document.getElementById("screen-quiz").classList.remove("hidden");
-      document.getElementById("screen-quiz").classList.add("flex");
-      updateQuestion();
+  var answers = new Array(QUESTIONS.length).fill(null);
+  var current = 0, timer = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var viewIntro = $("view-intro"), viewQuiz = $("view-quiz"), viewResults = $("view-results");
+  var qText = $("q-text"), qCount = $("q-count"), qCard = $("q-card"), qColor = $("q-color");
+  var fill = $("progress-fill"), answersWrap = $("answers"), backBtn = $("back-btn");
+
+  function colorOf(i){ return i % 5; }
+
+  function renderQuestion(){
+    var c = COLORS[colorOf(current)];
+    qText.textContent = QUESTIONS[current];
+    qCard.style.setProperty("--qc", c.color);
+    qColor.innerHTML = '<span class="chip" style="background:' + c.color + '"></span>' + c.name;
+    qCount.textContent = "Question " + (current + 1) + " / " + QUESTIONS.length;
+    fill.style.width = (current / QUESTIONS.length * 100) + "%";
+    backBtn.disabled = current === 0;
+    answersWrap.querySelectorAll(".answer-btn").forEach(function(b){
+      b.classList.toggle("selected", answers[current] === parseInt(b.getAttribute("data-v"), 10));
+    });
+  }
+
+  function cancelAdvance(){ if(timer){ clearTimeout(timer); timer = null; } }
+
+  function goNext(){
+    if(current < QUESTIONS.length - 1){
+      current++;
+      renderQuestion();
+      window.scrollTo(0, 0);
+    } else {
+      fill.style.width = "100%";
+      showResults();
     }
+  }
 
-    function updateQuestion() {
-      document.getElementById("question-text").innerText = `${currentIndex + 1}. ${questions[currentIndex].text}`;
-      document.getElementById("counter").innerText = `${currentIndex + 1} / ${questions.length}`;
-      
-      const progress = ((currentIndex + 1) / questions.length) * 100;
-      document.getElementById("progress-bar").style.width = `${progress}%`;
-
-      document.getElementById("btn-back").disabled = currentIndex === 0;
+  function goBack(){
+    if(current > 0){
+      cancelAdvance();
+      current--;
+      renderQuestion();
+      window.scrollTo(0, 0);
     }
+  }
 
-    function selectOption(score) {
-      userAnswers[currentIndex] = score;
+  function recordAnswer(v){
+    answers[current] = v;
+    renderQuestion();
+    cancelAdvance();
+    timer = setTimeout(function(){ timer = null; goNext(); }, 180);
+  }
 
-      if (currentIndex < questions.length - 1) {
-        currentIndex++;
-        updateQuestion();
-      } else {
-        showResults();
+  answersWrap.addEventListener("click", function(e){
+    var b = e.target.closest(".answer-btn");
+    if(b) recordAnswer(parseInt(b.getAttribute("data-v"), 10));
+  });
+  backBtn.addEventListener("click", goBack);
+  document.addEventListener("keydown", function(e){
+    if(viewQuiz.hidden) return;
+    if(e.key >= "0" && e.key <= "4") recordAnswer(parseInt(e.key, 10));
+    else if(e.key === "ArrowLeft") goBack();
+  });
+
+  $("start-btn").addEventListener("click", function(){
+    viewIntro.hidden = true; viewQuiz.hidden = false; current = 0; renderQuestion();
+    window.scrollTo(0, 0);
+  });
+  $("restart-btn").addEventListener("click", function(){
+    cancelAdvance();
+    answers = new Array(QUESTIONS.length).fill(null);
+    current = 0;
+    viewResults.hidden = true; viewIntro.hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  function showResults(){
+    var totals = [0,0,0,0,0];
+    for(var i = 0; i < QUESTIONS.length; i++) totals[colorOf(i)] += answers[i] || 0;
+    var max = Math.max.apply(null, totals);
+
+    var grid = $("gridlines");
+    grid.innerHTML = "";
+    [0,10,20,30,40].forEach(function(v){
+      var pct = v / 40 * 100;
+      var line = document.createElement("div");
+      line.className = "gridline"; line.style.bottom = pct + "%";
+      var lab = document.createElement("span");
+      lab.className = "grid-label"; lab.style.bottom = pct + "%"; lab.textContent = v;
+      grid.appendChild(line); grid.appendChild(lab);
+    });
+
+    var bars = $("bars");
+    bars.innerHTML = "";
+    COLORS.forEach(function(c, i){
+      var top = max > 0 && totals[i] === max;
+      var col = document.createElement("div");
+      col.className = "bar-col" + (top ? " top" : "");
+      if(top){
+        var star = document.createElement("div");
+        star.className = "star"; star.textContent = "★";
+        col.appendChild(star);
       }
-    }
+      var val = document.createElement("div");
+      val.className = "bar-value"; val.textContent = totals[i];
+      col.appendChild(val);
+      var bar = document.createElement("div");
+      bar.className = "bar"; bar.style.background = c.color; bar.style.height = "0%";
+      col.appendChild(bar);
+      var lab = document.createElement("div");
+      lab.className = "bar-label"; lab.textContent = c.name;
+      col.appendChild(lab);
+      bars.appendChild(col);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+        bar.style.height = (totals[i] / 40 * 100) + "%";
+      }); });
+    });
 
-    function previousQuestion() {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateQuestion();
-      }
-    }
-
-    function calculateTotals() {
-      const totals = { "Orange": 0, "Bleu": 0, "Jaune": 0, "Rose": 0, "Vert": 0 };
-      userAnswers.forEach((val, idx) => {
-        if (val !== null) {
-          const color = questions[idx].color;
-          totals[color] += val;
-        }
-      });
-      return totals;
-    }
-
-    function showResults() {
-      document.getElementById("screen-quiz").classList.remove("flex");
-      document.getElementById("screen-quiz").classList.add("hidden");
-      document.getElementById("screen-results").classList.remove("hidden");
-      document.getElementById("counter").innerText = "Fin";
-      document.getElementById("progress-bar").style.width = "100%";
-
-      const totals = calculateTotals();
-
-      // Render Breakdown Cards
-      const scoresContainer = document.getElementById("color-scores");
-      scoresContainer.innerHTML = "";
-      Object.keys(totals).forEach(color => {
-        const card = document.createElement("div");
-        card.className = "bg-slate-800/80 border border-slate-700/60 rounded-xl p-2 flex flex-col items-center";
-        card.innerHTML = `
-          <span class="w-3 h-3 rounded-full mb-1" style="background-color: ${colorConfig[color].hex}"></span>
-          <span class="text-[10px] text-slate-400 font-medium">${color}</span>
-          <span class="text-base font-bold text-white">${totals[color]}</span>
-        `;
-        scoresContainer.appendChild(card);
+    var list = $("score-list");
+    list.innerHTML = "";
+    COLORS.map(function(c, i){ return {c: c, s: totals[i]}; })
+      .sort(function(a, b){ return b.s - a.s; })
+      .forEach(function(it){
+        var top = max > 0 && it.s === max;
+        var card = document.createElement("div");
+        card.className = "card score-card" + (top ? " top" : "");
+        card.innerHTML =
+          '<div class="score-head"><span class="swatch" style="background:' + it.c.color + '"></span>' +
+          '<strong>' + it.c.name + '</strong>' +
+          (top ? '<span class="pill">Total le plus élevé</span>' : '') +
+          '<span class="score-val">' + it.s + ' / 40</span></div>';
+        list.appendChild(card);
       });
 
-      // Render Chart
-      const ctx = document.getElementById('resultsChart').getContext('2d');
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(totals),
-          datasets: [{
-            data: Object.values(totals),
-            backgroundColor: Object.keys(totals).map(c => colorConfig[c].hex),
-            borderRadius: 10,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(255, 255, 255, 0.08)' },
-              ticks: { color: '#94a3b8', font: { size: 11 } }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { color: '#cbd5e1', font: { size: 12, weight: 'bold' } }
-            }
-          }
-        }
-      });
-    }
-
-    function restartQuiz() {
-      currentIndex = 0;
-      userAnswers = new Array(questions.length).fill(null);
-      document.getElementById("screen-results").classList.add("hidden");
-      document.getElementById("screen-welcome").classList.remove("hidden");
-      document.getElementById("progress-bar").style.width = "2%";
-      document.getElementById("counter").innerText = "1 / 50";
-    }
-  </script>
+    viewQuiz.hidden = true; viewResults.hidden = false;
+    window.scrollTo(0, 0);
+  }
+})();
+</script>
 </body>
 </html>
